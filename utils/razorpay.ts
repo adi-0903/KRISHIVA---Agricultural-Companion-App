@@ -3,9 +3,39 @@ import { Alert } from 'react-native';
 
 const RazorpayCheckout = require('react-native-razorpay').default;
 
-export const initializeRazorpay = () => {
+export interface RazorpayOptions {
+  description: string;
+  image?: string;
+  currency: string;
+  key: string;
+  amount: number;
+  name: string;
+  order_id?: string;
+  prefill?: {
+    email?: string;
+    contact?: string;
+    name?: string;
+  };
+  theme?: {
+    color: string;
+  };
+  [key: string]: any;
+}
+
+export interface RazorpayResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+export interface PaymentResult {
+  success: boolean;
+  data?: RazorpayResponse;
+  error?: string;
+}
+
+export const initializeRazorpay = (): boolean => {
   try {
-    // Just verify that Razorpay is available
     if (!RazorpayCheckout) {
       console.error('Razorpay SDK not found');
       return false;
@@ -18,22 +48,37 @@ export const initializeRazorpay = () => {
   }
 };
 
-export const openRazorpayCheckout = async (options: any) => {
+export const openRazorpayCheckout = async (options: RazorpayOptions): Promise<PaymentResult> => {
   try {
     if (!RazorpayCheckout) {
       throw new Error('Payment service is not available. Please try again later.');
     }
     
-    const data = await RazorpayCheckout.open(options);
+    // Ensure amount is a number and convert to string as required by Razorpay
+    const processedOptions = {
+      ...options,
+      amount: String(Math.round(Number(options.amount))),
+    };
     
-    if (!data || !data.razorpay_payment_id) {
+    const data: RazorpayResponse = await RazorpayCheckout.open(processedOptions);
+    
+    if (!data?.razorpay_payment_id) {
       throw new Error('Payment failed: No payment ID received');
     }
     
     return { success: true, data };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Razorpay error:', error);
     
+    // Handle user cancellation
+    if (error?.code === 'E_PAYMENT_CANCELLED') {
+      return { 
+        success: false, 
+        error: 'Payment was cancelled by user' 
+      };
+    }
+    
+    // Extract error message
     let errorMessage = 'Payment failed. Please try again.';
     
     if (error && typeof error === 'object') {
@@ -42,19 +87,16 @@ export const openRazorpayCheckout = async (options: any) => {
         error?: { 
           description?: string;
           message?: string;
+          code?: string | number;
         };
         message?: string;
       };
       
-      if (razorpayError.description) {
-        errorMessage = razorpayError.description;
-      } else if (razorpayError.error?.description) {
-        errorMessage = razorpayError.error.description;
-      } else if (typeof razorpayError.message === 'string') {
-        errorMessage = razorpayError.message;
-      } else if (razorpayError.error?.message) {
-        errorMessage = razorpayError.error.message;
-      }
+      errorMessage = razorpayError.description || 
+                   razorpayError.error?.description || 
+                   razorpayError.error?.message || 
+                   razorpayError.message || 
+                   errorMessage;
     }
     
     return { 

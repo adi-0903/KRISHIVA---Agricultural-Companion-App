@@ -6,6 +6,20 @@ import SyncManager from './SyncManager';
 
 type ScreenName = keyof RootStackParamList;
 
+type PaymentScreenParams = {
+  email?: string;
+  contact?: string;
+  name?: string;
+};
+
+declare global {
+  namespace ReactNavigation {
+    interface RootParamList extends RootStackParamList {
+      'payment-screen': PaymentScreenParams;
+    }
+  }
+}
+
 const RootLayout = () => {
   return (
     <>
@@ -41,11 +55,8 @@ const RootLayout = () => {
           options={{ title: 'Registered Users', headerShown: true }}
         />
         <Stack.Screen
-          name="premium"
-          options={{
-            title: 'Premium',
-            headerShown: true,
-          }}
+          name="payment-screen"
+          options={{ title: 'Upgrade to Premium', headerShown: true }}
         />
       </Stack>
     </>

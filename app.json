@@ -3,8 +3,8 @@
     "name": "KRISHIVA",
     "slug": "Login-Signup",
     "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "orientation": ["portrait", "landscape"],
+    "icon": "./assets/images/crop1.png",
     "scheme": "loginsignup",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -16,6 +16,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "softwareKeyboardLayoutMode": "resize",
       "edgeToEdgeEnabled": true,
       "package": "com.anonymous.LoginSignup"
     },

@@ -1,3 +1,4 @@
+//database.ts
 import * as SQLite from 'expo-sqlite';
   import NetInfo from '@react-native-community/netinfo';
   import { Platform } from 'react-native';
